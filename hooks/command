@@ -2,4 +2,33 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-source hooks/functions.sh
+# source hooks/functions.sh
+
+cat <<EOF | kubectl apply -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_KEY}-
+  labels:
+    service: buildkite
+    pipeline: ${BUILDKITE_PIPELINE_SLUG}
+    build: ${BUILDKITE_BUILD_NUMBER}
+    step: ${BUILDKITE_STEP_KEY}
+spec:
+  backoffLimit: 3
+  completions: 1
+  parallelism: 1
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        service: buildkite
+        pipeline: ${BUILDKITE_PIPELINE_SLUG}
+        build: ${BUILDKITE_BUILD_NUMBER}
+        step: ${BUILDKITE_STEP_KEY}
+    spec: ${BUILDKITE_PLUGIN_K8S_JOB_POD_SPEC}
+EOF
+
+kubectl logs -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_KEY} --tail=-1 --follow=true
+
+kubectl get -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_KEY} job -o json
