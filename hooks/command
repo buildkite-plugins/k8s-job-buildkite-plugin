@@ -4,6 +4,8 @@ cd "$(dirname "$0")/.."
 
 # source hooks/functions.sh
 
+env | sort
+
 cat <<EOF | kubectl apply -f -
 apiVersion: batch/v1
 kind: Job
