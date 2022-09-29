@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 cd "$(dirname "$0")/.."
 
-kubectl delete -l step=${BUILDKITE_STEP_ID} job
+# kubectl delete -l step=${BUILDKITE_STEP_ID} job
