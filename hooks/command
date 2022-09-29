@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 
-cat <<EOF | kubectl apply -f -
+cat <<EOF | kubectl create job -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
