@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -euxo pipefail
 cd "$(dirname "$0")/.."
 
 # source hooks/functions.sh
@@ -10,12 +10,12 @@ cat <<EOF | kubectl apply -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_KEY}-
+  generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_ID}-
   labels:
     service: buildkite
     pipeline: ${BUILDKITE_PIPELINE_SLUG}
     build: ${BUILDKITE_BUILD_NUMBER}
-    step: ${BUILDKITE_STEP_KEY}
+    step: ${BUILDKITE_STEP_ID}
 spec:
   backoffLimit: 3
   completions: 1
@@ -27,10 +27,10 @@ spec:
         service: buildkite
         pipeline: ${BUILDKITE_PIPELINE_SLUG}
         build: ${BUILDKITE_BUILD_NUMBER}
-        step: ${BUILDKITE_STEP_KEY}
+        step: ${BUILDKITE_STEP_ID}
     spec: ${POD_SPEC}
 EOF
 
-kubectl logs -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_KEY} --tail=-1 --follow=true
+kubectl logs -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 
-kubectl get -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_KEY} job -o json
+kubectl get -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_ID} job -o json
