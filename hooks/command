@@ -2,8 +2,6 @@
 set -euxo pipefail
 cd "$(dirname "$0")/.."
 
-# source hooks/functions.sh
-
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 
 cat <<EOF | kubectl apply -f -
