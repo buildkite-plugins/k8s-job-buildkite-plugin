@@ -29,5 +29,11 @@ spec:
         step: ${BUILDKITE_STEP_ID}
     spec: ${POD_SPEC}
 EOF
+
+kubectl wait pod -l step=${BUILDKITE_STEP_ID} \
+  --for=condition=ContainersReady \
+  --timeout=120s
+
+
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 kubectl get -l step=${BUILDKITE_STEP_ID} job -o json
