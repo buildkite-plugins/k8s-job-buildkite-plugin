@@ -16,7 +16,7 @@ metadata:
     pipeline: ${BUILDKITE_PIPELINE_SLUG}
     step: ${BUILDKITE_STEP_ID}
 spec:
-  backoffLimit: 3
+  backoffLimit: 6
   completions: 1
   parallelism: 1
   ttlSecondsAfterFinished: 300
@@ -30,10 +30,13 @@ spec:
     spec: ${POD_SPEC}
 EOF
 
+echo "Waiting for job pod to be available..."
 kubectl wait pod -l step=${BUILDKITE_STEP_ID} \
   --for=condition=ContainersReady \
-  --timeout=120s
+  --timeout=60s
 
-
+echo "Pod logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
+
+echo "Job status"
 kubectl get -l step=${BUILDKITE_STEP_ID} job -o json
