@@ -30,12 +30,10 @@ spec:
     spec: ${POD_SPEC}
 EOF
 
-echo "Waiting for job pod to be available..."
-kubectl wait pod -l step=${BUILDKITE_STEP_ID} \
-  --for=condition=ContainersReady \
-  --timeout=60s
+echo "Waiting for job to be complete..."
+kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=60s
 
-echo "Pod logs..."
+echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 
 echo "Job status"
