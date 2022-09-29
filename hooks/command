@@ -14,7 +14,6 @@ metadata:
   labels:
     service: buildkite
     pipeline: ${BUILDKITE_PIPELINE_SLUG}
-    build: ${BUILDKITE_BUILD_NUMBER}
     step: ${BUILDKITE_STEP_ID}
 spec:
   backoffLimit: 3
@@ -26,11 +25,11 @@ spec:
       labels:
         service: buildkite
         pipeline: ${BUILDKITE_PIPELINE_SLUG}
-        build: ${BUILDKITE_BUILD_NUMBER}
+
         step: ${BUILDKITE_STEP_ID}
     spec: ${POD_SPEC}
 EOF
 
-kubectl logs -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
+kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 
-kubectl get -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_ID} job -o json
+kubectl get -l step=${BUILDKITE_STEP_ID} job -o json
