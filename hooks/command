@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
-set -euxo pipefail
+set -euo pipefail
 cd "$(dirname "$0")/.."
 
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
 
+echo -e "Creating job with pod-spec:\n${PP_POD_SPEC}"
 cat <<EOF | kubectl create -f -
 apiVersion: batch/v1
 kind: Job
@@ -27,7 +29,5 @@ spec:
         step: ${BUILDKITE_STEP_ID}
     spec: ${POD_SPEC}
 EOF
-
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
-
 kubectl get -l step=${BUILDKITE_STEP_ID} job -o json
