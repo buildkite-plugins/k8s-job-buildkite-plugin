@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 
 # source hooks/functions.sh
 
-env | sort
+POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 
 cat <<EOF | kubectl apply -f -
 apiVersion: batch/v1
@@ -28,7 +28,7 @@ spec:
         pipeline: ${BUILDKITE_PIPELINE_SLUG}
         build: ${BUILDKITE_BUILD_NUMBER}
         step: ${BUILDKITE_STEP_KEY}
-    spec: ${BUILDKITE_PLUGIN_K8S_JOB_POD_SPEC}
+    spec: ${POD_SPEC}
 EOF
 
 kubectl logs -l service=buildkite,pipeline=${BUILDKITE_PIPELINE_SLUG},build=${BUILDKITE_BUILD_NUMBER},step=${BUILDKITE_STEP_KEY} --tail=-1 --follow=true
