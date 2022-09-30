@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
+
+echo -e "Creating job with pod-spec:\n${PP_POD_SPEC}"
+cat <<EOF | kubectl create -f -
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_ID}-
+  labels:
+    service: buildkite
+    pipeline: ${BUILDKITE_PIPELINE_SLUG}
+    step: ${BUILDKITE_STEP_ID}
+spec:
+  backoffLimit: 6
+  completions: 1
+  parallelism: 1
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        service: buildkite
+        pipeline: ${BUILDKITE_PIPELINE_SLUG}
+
+        step: ${BUILDKITE_STEP_ID}
+    spec: ${POD_SPEC}
+EOF
+
+echo "Waiting for job to be complete..."
+kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=60s || true
+
+echo "Job logs..."
+kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
+
+# Set exit code from container status
+kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq -e ".items[].status.containerStatuses[0].state.terminated.exitCode"
