@@ -37,4 +37,4 @@ echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 
 echo "Job status"
-kubectl get -l step=${BUILDKITE_STEP_ID} job -o json
+kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq -e ".status.containerStatuses[0].state.terminated.exitCode"
