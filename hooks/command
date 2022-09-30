@@ -36,5 +36,5 @@ kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout
 echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 
-echo "Job status"
+# Set exit code from container status
 kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq -e ".status.containerStatuses[0].state.terminated.exitCode"
