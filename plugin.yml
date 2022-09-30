@@ -9,6 +9,8 @@ configuration:
   properties:
     pod-spec:
       type: string
+    cleanup:
+      type: boolean
   required:
     - pod-spec
   additionalProperties: false

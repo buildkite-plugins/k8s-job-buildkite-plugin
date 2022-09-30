@@ -2,4 +2,8 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-kubectl delete -l step=${BUILDKITE_STEP_ID} job
+CLEANUP=$(jq -cr '.["cleanup"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+if [ "${CLEANUP}" == "true" ]; then
+  echo "Deleting job..."
+  kubectl delete -l step=${BUILDKITE_STEP_ID} job
+fi
