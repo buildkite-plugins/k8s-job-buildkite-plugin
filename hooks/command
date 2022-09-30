@@ -31,7 +31,7 @@ spec:
 EOF
 
 echo "Waiting for job to be complete..."
-kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=60s
+kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=60s || true
 
 echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
