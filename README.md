@@ -1,11 +1,11 @@
 # k8s-job-buildkite-plugin
-Run a Command Step in a Kubernetes Job using a Pod Spec
+Run a Command Step in a Kubernetes Job using a Pod Spec.
 
 ## RBAC
 
 You will need to ensure your agent deployment has sufficient privileges to create resources on your kubernetes cluster. An example RBAC policy:
 
-```
+```yaml
 kind: ServiceAccount
 apiVersion: v1
 metadata:
@@ -35,3 +35,26 @@ roleRef:
   name: agent-k8s-job
   apiGroup: rbac.authorization.k8s.io
 ```
+
+## Configuration
+
+`pod-spec` this takes a [kubernetes pod spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#podspec-v1-core) that will run in a kubernetes job. It is often easier to format this with a yaml reference like below:
+
+```yaml
+success-spec: &success-spec
+  restartPolicy: OnFailure
+  containers:
+    - name: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_ID}-success
+      image: deftinc/winpenguin
+      command: ["/app/entrypoint.sh"]
+
+steps:
+  - label: "Consulting my :crystal_ball: thats inside my :k8s: pod"
+    env:
+      BUILDKITE_PLUGINS_ALWAYS_CLONE_FRESH: "true"
+    plugins:
+      - k8s-job#phw-scaffold:
+          pod-spec: *success-spec
+```
+
+`cleanup` this defaults to true and will clean up the job and pod resources after the step runs. If set to false they will remain for 10 minutes to debug.
