@@ -54,7 +54,7 @@ steps:
     env:
       BUILDKITE_PLUGINS_ALWAYS_CLONE_FRESH: "true"
     plugins:
-      - k8s-job#phw-scaffold:
+      - k8s-job:
           pod-spec: *success-spec
 ```
 
