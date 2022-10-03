@@ -51,8 +51,6 @@ success-spec: &success-spec
 
 steps:
   - label: "Consulting my :crystal_ball: thats inside my :k8s: pod"
-    env:
-      BUILDKITE_PLUGINS_ALWAYS_CLONE_FRESH: "true"
     plugins:
       - k8s-job:
           pod-spec: *success-spec
