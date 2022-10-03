@@ -1,5 +1,6 @@
 # k8s-job-buildkite-plugin
-Run a Command Step in a Kubernetes Job using a Pod Spec.
+
+Run a [Command Step](https://buildkite.com/docs/pipelines/command-step) as a Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/) using a [Pod Spec](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#PodSpec).
 
 ## RBAC
 
