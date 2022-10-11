@@ -35,7 +35,7 @@ spec:
     spec: ${POD_SPEC}
 EOF
 
-echo -e "Using anntoations\n${PP_ANNOTATIONS}"
+echo -e "Using annotations\n${PP_ANNOTATIONS}"
 
 echo "Waiting for job to be complete..."
 kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=60s || true
