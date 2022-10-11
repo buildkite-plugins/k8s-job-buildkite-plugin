@@ -57,3 +57,5 @@ steps:
 ```
 
 `cleanup` this defaults to true and will clean up the job and pod resources after the step runs. If set to false they will remain for 10 minutes to debug.
+
+`metadata` will add metadata (annotations) to the kubernetes job.

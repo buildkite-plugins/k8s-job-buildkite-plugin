@@ -2,6 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+ANNOTATIONS=$(jq -cr '.["metadata"]["annotations"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
 
@@ -10,6 +12,7 @@ cat <<EOF | kubectl create -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
+  annotations: ${ANNOTATIONS}
   generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_ID}-
   labels:
     service: buildkite
@@ -22,6 +25,7 @@ spec:
   ttlSecondsAfterFinished: 600
   template:
     metadata:
+      annotations: ${ANNOTATIONS}
       labels:
         service: buildkite
         pipeline: ${BUILDKITE_PIPELINE_SLUG}
