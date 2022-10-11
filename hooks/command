@@ -3,6 +3,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 ANNOTATIONS=$(jq -cr '.["metadata"]["annotations"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+PP_ANNOTATIONS=$(jq -r . <<< "${ANNOTATIONS}")
 
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
@@ -33,6 +34,8 @@ spec:
         step: ${BUILDKITE_STEP_ID}
     spec: ${POD_SPEC}
 EOF
+
+echo -e "Using anntoations\n${PP_ANNOTATIONS}"
 
 echo "Waiting for job to be complete..."
 kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=60s || true
