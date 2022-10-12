@@ -13,7 +13,7 @@ if [ "${MOUNT_SOURCE}" == "true" ]; then
   CONTAINER_NAME=$(jq -cr ".containers[0].name" <<< "${POD_SPEC}")
   echo "Adding a volume mount to ${CONTAINER_NAME} for the source code at /app/src"
   # Add the hostPath volume
-  POD_SPEC=$(jq -cr ".volumes |= . + [{\"name\":\"source-code\", \"hostPath\":{\"path\":\"${BUILDKITE_BUILD_CHECKOUT_PATH}\",\"type\":\"Directory\"}}]" <<< "${POD_SPEC}")
+  POD_SPEC=$(jq -cr ".volumes |= . + [{\"name\":\"source-code\", \"hostPath\":{\"path\":\"${BUILDKITE_BUILD_CHECKOUT_PATH}\"}}]" <<< "${POD_SPEC}")
   # Add the volumeMount
   POD_SPEC=$(jq -cr ".containers[0].volumeMounts |= . + [{\"name\":\"source-code\", \"mountPath\": \"/app/src\"}]" <<< "${POD_SPEC}")
   # Add the nodeSelector
