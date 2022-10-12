@@ -15,7 +15,7 @@ if [ "${MOUNT_SOURCE}" == "true" ]; then
   # Add the hostPath volume
   POD_SPEC=$(jq -cr ".volumes |= . + [{\"name\":\"builds\", \"hostPath\":{\"path\":\"/data/buildkite/builds/${BUILDKITE_AGENT_NAME}/${BUILDKITE_ORGANIZATION_SLUG}/${BUILDKITE_PIPELINE_SLUG}\", \"type\": \"Directory\"}}]" <<< "${POD_SPEC}")
   # Add the volumeMount
-  POD_SPEC=$(jq -cr ".containers[0].volumeMounts |= . + [{\"name\":\"builds\", \"mountPath\": \"/app/src\", \"readOnly\": true}]" <<< "${POD_SPEC}")
+  POD_SPEC=$(jq -cr ".containers[0].volumeMounts |= . + [{\"name\":\"builds\", \"mountPath\": \"/buildkite/src\", \"readOnly\": true}]" <<< "${POD_SPEC}")
   # Add the nodeSelector
   POD_SPEC=$(jq -cr ".nodeName = \"${BUILDKITE_AGENT_NODE_NAME}\"" <<< "${POD_SPEC}")
 fi
