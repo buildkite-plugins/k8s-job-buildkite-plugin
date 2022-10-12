@@ -18,7 +18,7 @@ if [ "${MOUNT_SOURCE}" == "true" ]; then
   # Add the volumeMount
   POD_SPEC=$(jq -cr ".containers[0].volumeMounts |= . + [{\"name\":\"source-code\", \"mount-path\": \"/app/src\"}]" <<< "${POD_SPEC}")
   # Add the nodeSelector
-  POD_SPEC=$(jq -cr ".nodeName = \"${AGENT_NODE_NAME}\"" <<< "${POD_SPEC}")
+  POD_SPEC=$(jq -cr ".nodeName = \"${BUILDKITE_AGENT_NODE_NAME}\"" <<< "${POD_SPEC}")
 fi
 
 echo -e "Creating job with pod-spec:\n${PP_POD_SPEC}"
