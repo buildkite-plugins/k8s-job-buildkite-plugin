@@ -60,7 +60,7 @@ steps:
 
 `metadata.annotations` will add metadata (annotations) to the kubernetes job. Defaults to an empty object.
 
-`mount-source` will mount the source code to `/app/src` if set to true. This can be used for build steps that build images from source. Defaults to false.
+`mount-source` will mount the source code to `/buildkite/src` if set to true. This can be used for build steps that build images from source. Defaults to false.
 
 To use this option your agent must include in the nodeName it is running on in its environment variables as `BUILDKITE_AGENT_NODE_NAME`. It must also include a hostPath volumes and volumeMount for the agent.
 
