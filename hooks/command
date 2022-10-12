@@ -27,7 +27,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   annotations: ${ANNOTATIONS}
-  generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_ID}-
+  generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-
   labels:
     service: buildkite
     pipeline: ${BUILDKITE_PIPELINE_SLUG}
