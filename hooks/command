@@ -6,7 +6,6 @@ ANNOTATIONS=$(jq -cr '.["metadata"]["annotations"]' <<< "${BUILDKITE_PLUGIN_CONF
 PP_ANNOTATIONS=$(jq -r . <<< "${ANNOTATIONS}")
 
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
-PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
 
 SOURCE_PATH=$(pwd)
 MOUNT_SOURCE=$(jq -cr '.["mount-source"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
@@ -21,6 +20,7 @@ if [ "${MOUNT_SOURCE}" == "true" ]; then
   POD_SPEC=$(jq -cr ".nodeName = \"${BUILDKITE_AGENT_NODE_NAME}\"" <<< "${POD_SPEC}")
 fi
 
+PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
 echo -e "Creating job with pod-spec:\n${PP_POD_SPEC}"
 cat <<EOF | kubectl create -f -
 apiVersion: batch/v1
