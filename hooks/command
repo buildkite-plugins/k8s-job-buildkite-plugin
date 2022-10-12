@@ -8,6 +8,19 @@ PP_ANNOTATIONS=$(jq -r . <<< "${ANNOTATIONS}")
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
 
+SOURCE_PATH=$(pwd)
+MOUNT_SOURCE=$(jq -cr '.["mount-source"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+if [ "${MOUNT_SOURCE}" == "true" ]; then
+  CONTAINER_NAME=$(jq -cr ".containers[0].name" <<< "${POD_SPEC}")
+  echo "Adding a volume mount to ${CONTAINER_NAME} for the source code at /app/src"
+  # Add the hostPath volume
+  POD_SPEC=$(jq -cr ".volumes |= . + [{\"name\":\"source-code\", \"hostPath\":{\"path\":\"${SOURCE_PATH}\",\"type\":\"Directory\"}}]" <<< "${POD_SPEC}")
+  # Add the volumeMount
+  POD_SPEC=$(jq -cr ".containers[0].volumeMounts |= . + [{\"name\":\"source-code\", \"mount-path\": \"/app/src\"}]" <<< "${POD_SPEC}")
+  # Add the nodeSelector
+  POD_SPEC=$(jq -cr ".nodeName = \"${AGENT_NODE_NAME}\"" <<< "${POD_SPEC}")
+fi
+
 echo -e "Creating job with pod-spec:\n${PP_POD_SPEC}"
 cat <<EOF | kubectl create -f -
 apiVersion: batch/v1
