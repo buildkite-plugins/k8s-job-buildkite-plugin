@@ -6,15 +6,28 @@ ANNOTATIONS=$(jq -cr '.["metadata"]["annotations"]' <<< "${BUILDKITE_PLUGIN_CONF
 PP_ANNOTATIONS=$(jq -r . <<< "${ANNOTATIONS}")
 
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
-PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
 
+
+MOUNT_SOURCE=$(jq -cr '.["mount-source"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+if [ "${MOUNT_SOURCE}" == "true" ]; then
+  CONTAINER_NAME=$(jq -cr ".containers[0].name" <<< "${POD_SPEC}")
+  echo "Adding a volume mount to ${CONTAINER_NAME} for the source code at /buildkite/src"
+  # Add the hostPath volume
+  POD_SPEC=$(jq -cr ".volumes |= . + [{\"name\":\"builds\", \"hostPath\":{\"path\":\"/data/buildkite/builds/${BUILDKITE_AGENT_NAME}/${BUILDKITE_ORGANIZATION_SLUG}/${BUILDKITE_PIPELINE_SLUG}\", \"type\": \"Directory\"}}]" <<< "${POD_SPEC}")
+  # Add the volumeMount
+  POD_SPEC=$(jq -cr ".containers[0].volumeMounts |= . + [{\"name\":\"builds\", \"mountPath\": \"/buildkite/src\", \"readOnly\": true}]" <<< "${POD_SPEC}")
+  # Add the nodeSelector
+  POD_SPEC=$(jq -cr ".nodeName = \"${BUILDKITE_AGENT_NODE_NAME}\"" <<< "${POD_SPEC}")
+fi
+
+PP_POD_SPEC=$(jq -r . <<< "${POD_SPEC}")
 echo -e "Creating job with pod-spec:\n${PP_POD_SPEC}"
 cat <<EOF | kubectl create -f -
 apiVersion: batch/v1
 kind: Job
 metadata:
   annotations: ${ANNOTATIONS}
-  generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_ID}-
+  generateName: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-
   labels:
     service: buildkite
     pipeline: ${BUILDKITE_PIPELINE_SLUG}

@@ -16,6 +16,8 @@ configuration:
       type: string
     cleanup:
       type: boolean
+    mount-source:
+      type: boolean
   required:
     - pod-spec
   additionalProperties: false

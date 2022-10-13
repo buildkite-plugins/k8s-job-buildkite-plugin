@@ -56,6 +56,32 @@ steps:
           pod-spec: *success-spec
 ```
 
-`cleanup` this defaults to true and will clean up the job and pod resources after the step runs. If set to false they will remain for 10 minutes to debug.
+`cleanup` will clean up the job and pod resources after the step runs. If set to false they will remain for 10 minutes to debug. Defaults to true.
 
-`metadata` will add metadata (annotations) to the kubernetes job.
+`metadata.annotations` will add metadata (annotations) to the kubernetes job. Defaults to an empty object.
+
+`mount-source` will mount the source code to `/buildkite/src` if set to true. This can be used for build steps that build images from source. Defaults to false.
+
+To use this option your agent must include in the nodeName it is running on in its environment variables as `BUILDKITE_AGENT_NODE_NAME`. It must also include a hostPath volumes and volumeMount for the agent.
+
+```
+env:
+  - name: AGENT_NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+```
+
+```
+volumes:
+  - name: builds
+    hostPath:
+      path: /data/buildkite/builds
+      type: DirectoryOrCreate
+```
+
+```
+volumeMounts:
+  - name: builds
+    mountPath: "/buildkite/builds"
+```
