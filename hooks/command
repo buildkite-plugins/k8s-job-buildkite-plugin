@@ -59,6 +59,6 @@ kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 # debug
 EXIT_CODES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].status.containerStatuses[].state.terminated.exitCode') 
 #echo exit $(expr $(wc -l <<< "$EXIT_CODES") - $(grep 0 <<< "$EXIT_CODES" | wc -l))
-jq -e $(expr $(wc -l <<< "$EXIT_CODES") - $(grep 0 <<< "$EXIT_CODES" | wc -l))
+exit $(expr $(wc -l <<< "$EXIT_CODES") - $(grep 0 <<< "$EXIT_CODES" | wc -l))
 # Set exit code from container status
 #kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq -e ".items[].status.containerStatuses[0].state.terminated.exitCode"
