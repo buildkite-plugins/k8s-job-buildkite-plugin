@@ -66,7 +66,7 @@ To use this option your agent must include in the nodeName it is running on in i
 
 ```
 env:
-  - name: AGENT_NODE_NAME
+  - name: BUILDKITE_AGENT_NODE_NAME
     valueFrom:
       fieldRef:
         fieldPath: spec.nodeName
