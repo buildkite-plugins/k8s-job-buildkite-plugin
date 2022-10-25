@@ -34,7 +34,7 @@ metadata:
     step: ${BUILDKITE_STEP_ID}
 spec:
   backoffLimit: 1
-  completions: 1
+  completions: 0
   parallelism: 1
   ttlSecondsAfterFinished: 600
   template:
