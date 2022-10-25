@@ -53,11 +53,26 @@ TIMEOUT_IN_SECONDS=$(jq -cr '.timeoutInSeconds // 300' <<< "${BUILDKITE_PLUGIN_C
 INIT_CONTAINER_COUNT=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].spec.initContainers | length')
 CONTAINER_COUNT=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].spec.containers | length')
 echo -e "Found ${INIT_CONTAINER_COUNT} init containers, ${CONTAINER_COUNT} containers"
+
 echo "Waiting for job to be complete..."
-kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=${TIMEOUT_IN_SECONDS}s || {
+TIMEOUT=`expr $(date +%s) + ${TIMEOUT_IN_SECONDS}`
+while [$(date +s) -lt $TIMEOUT]; do
+  if kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=0 2>/dev/null; then
+    JOB_RESULT=0
+    break
+  fi
+
+  if kubectl wait --for=condition=failed job -l step=${BUILDKITE_STEP_ID} --timeout=0 2>/dev/null; then
+    JOB_RESULT=1
+    break
+  fi
+  sleep 1
+  printf "."
+done
+if [$(date +%s) -ge $TIMEOUT]; then
   echo "Error: Timeout for job expired after ${TIMEOUT_IN_SECONDS} seconds, you can set a longer timeout with the timeoutInSeconds option."
   exit 1
-}
+fi
 
 echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
