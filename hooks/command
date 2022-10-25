@@ -66,10 +66,11 @@ while [ $(date +s) -lt $TIMEOUT ]; do
     JOB_RESULT=1
     break
   fi
+
   sleep 1
   printf "."
 done
-if [$(date +%s) -ge $TIMEOUT]; then
+if [ $(date +%s) -ge $TIMEOUT ]; then
   echo "Error: Timeout for job expired after ${TIMEOUT_IN_SECONDS} seconds, you can set a longer timeout with the timeoutInSeconds option."
   exit 1
 fi
