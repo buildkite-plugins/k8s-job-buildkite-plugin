@@ -61,7 +61,7 @@ echo "Debug..."
 if [ "${FULL-DEBUG}" == "true" ]; then
   kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json
 else
-  kubectl get -l step=${BUILDKITE_STEP_ID} pods -o="custom-columns=NAME:.metadata.name,INIT-CONTAINERS:.spec.initContainers[*].name,CONTAINERS:.spec.containers[*].name,EXIT-STATUS:.items[*].status.containerStatuses[*].state.terminated.exitCode"
+  kubectl get -l step=${BUILDKITE_STEP_ID} pod -o="custom-columns=NAME:.metadata.name,INIT-CONTAINERS:.spec.initContainers[*].name,CONTAINERS:.spec.containers[*].name,EXIT-STATUS:.items[*].status.containerStatuses[*].state.terminated.exitCode"
 fi
 
 EXIT_CODES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].status.containerStatuses[].state.terminated.exitCode') 
