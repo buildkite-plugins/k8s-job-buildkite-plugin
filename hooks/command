@@ -84,6 +84,4 @@ PP_EXIT_CODES=$(jq -r . <<< "${EXIT_CODES}")
 echo -e "Container exit statuses\n${PP_EXIT_CODES}"
 
 # Exit with the max exitCode
-BUILD_EXIT_CODE=$(jq -cr 'max_by(.exitCode) | .exitCode' <<< "${EXIT_CODES}")
-echo "Build exit code=$BUILD_EXIT_CODE"
-exit $BUILD_EXIT_CODE
+jq -e 'max_by(.exitCode) | .exitCode == 0' <<< "${EXIT_CODES}"
