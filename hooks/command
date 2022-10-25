@@ -57,8 +57,6 @@ echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 echo "\n"
 kubectl get -l step=${BUILDKITE_STEP_ID} pods -o="custom-columns=NAME:.metadata.name,INIT-CONTAINERS:.spec.initContainers[*].name,CONTAINERS:.spec.containers[*].name,EXIT-STATUS:.items[*].status.containerStatuses[*].state.terminated.exitCode"
-echo "\n"
-kubectl get pods -o=jsonpath="{range .items[*]}{.metadata.name}{'\t'}{..exitCode}{'\n'}{end}"
 
 EXIT_CODES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].status.containerStatuses[].state.terminated.exitCode') 
 exit $(expr $(wc -l <<< "$EXIT_CODES") - $(grep 0 <<< "$EXIT_CODES" | wc -l))
