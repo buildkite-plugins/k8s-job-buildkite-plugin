@@ -58,7 +58,7 @@ kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 echo ""
 
 echo "Debug..."
-if [ "${FULL-DEBUG}" == "true" ]; then
+if [ "${FULL_DEBUG}" == "true" ]; then
   echo "Full debug"
   kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json
 else
