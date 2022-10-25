@@ -78,10 +78,10 @@ fi
 echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 
-CONTAINER_STATUSES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq -cr '[.items[].status.containerStatuses // [], .items[].status.initContainerStatuses // []]| flatten(1)')
-EXIT_CODES=$(jq -cr '.[] | {"name": .name, "exitCode": [.state.terminated.exitCode, .lastState.terminated.exitCode] | max}' <<< "${CONTAINER_STATUSES}")
+CONTAINER_STATUSES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq -cr '[.items[].status.containerStatuses // [], .items[].status.initContainerStatuses // []] | flatten(1)')
+EXIT_CODES=$(jq -cr 'map({"name": .name, "exitCode": [.state.terminated.exitCode, .lastState.terminated.exitCode] | max})' <<< "${CONTAINER_STATUSES}")
 PP_EXIT_CODES=$(jq -r . <<< "${EXIT_CODES}")
 echo -e "Container exit statuses\n${PP_EXIT_CODES}"
 
 # Exit with the max exitCode
-jq -e '. | max_by(.exitCode)' <<< "${EXIT_CODES}"
+jq -e 'max_by(.exitCode) | .exitCode' <<< "${EXIT_CODES}"
