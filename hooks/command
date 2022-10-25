@@ -56,7 +56,7 @@ echo -e "Found ${INIT_CONTAINER_COUNT} init containers, ${CONTAINER_COUNT} conta
 
 echo "Waiting for job to be complete..."
 TIMEOUT=`expr $(date +%s) + ${TIMEOUT_IN_SECONDS}`
-while [ "$(date +s)" -lt "${TIMEOUT}" ]; do
+while [ "$(date +%s)" -lt "${TIMEOUT}" ]; do
   if kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=0 2>/dev/null; then
     JOB_RESULT=0
     break
