@@ -18,6 +18,8 @@ configuration:
       type: boolean
     mount-source:
       type: boolean
+    full-debug:
+      type: boolean
   required:
     - pod-spec
   additionalProperties: false
