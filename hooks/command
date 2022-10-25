@@ -6,7 +6,7 @@ ANNOTATIONS=$(jq -cr '.["metadata"]["annotations"]' <<< "${BUILDKITE_PLUGIN_CONF
 PP_ANNOTATIONS=$(jq -r . <<< "${ANNOTATIONS}")
 
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
-
+FULL_DEBUG=$(jq -cr '.["full-debug"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 
 MOUNT_SOURCE=$(jq -cr '.["mount-source"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 if [ "${MOUNT_SOURCE}" == "true" ]; then
@@ -55,6 +55,14 @@ kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout
 
 echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
+echo ""
+
+echo "Debug..."
+if [ "${FULL_DEBUG}" == "true" ]; then
+  kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json
+else
+  kubectl get -l step=${BUILDKITE_STEP_ID} pod -o="custom-columns=NAME:.metadata.name,INIT-CONTAINERS:.spec.initContainers[*].name,CONTAINERS:.spec.containers[*].name,EXIT-STATUS:.items[*].status.containerStatuses[*].state.terminated.exitCode"
+fi
 
 EXIT_CODES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].status.containerStatuses[].state.terminated.exitCode') 
 exit $(expr $(wc -l <<< "$EXIT_CODES") - $(grep 0 <<< "$EXIT_CODES" | wc -l))
