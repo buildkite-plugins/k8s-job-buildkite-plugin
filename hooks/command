@@ -59,8 +59,10 @@ echo ""
 
 echo "Debug..."
 if [ "${FULL-DEBUG}" == "true" ]; then
+  echo "Full debug"
   kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json
 else
+  echo "Partial debug"
   kubectl get -l step=${BUILDKITE_STEP_ID} pod -o="custom-columns=NAME:.metadata.name,INIT-CONTAINERS:.spec.initContainers[*].name,CONTAINERS:.spec.containers[*].name,EXIT-STATUS:.items[*].status.containerStatuses[*].state.terminated.exitCode"
 fi
 
