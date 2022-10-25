@@ -85,3 +85,5 @@ volumeMounts:
   - name: builds
     mountPath: "/buildkite/builds"
 ```
+
+`timeoutInSeconds` will set how long the job should wait for all of the init containers and containers in the pod spec to finish before reporting an error. Defaults to 300.
