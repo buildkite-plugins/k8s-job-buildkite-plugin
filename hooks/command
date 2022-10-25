@@ -50,11 +50,23 @@ EOF
 
 echo -e "Using annotations\n${PP_ANNOTATIONS}"
 
+TIMEOUT_IN_SECONDS=$(jq -cr '.timeoutInSeconds // 300' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+INIT_CONTAINER_COUNT=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].spec.initContainers | length')
+CONTAINER_COUNT=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].spec.containers | length')
+echo -e "Found ${INIT_CONTAINER_COUNT} init containers, ${CONTAINER_COUNT} containers"
 echo "Waiting for job to be complete..."
-kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=60s || true
+kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=${TIMEOUT_IN_SECONDS}s || {
+  echo "Error: Timeout for job expired after ${TIMEOUT_IN_SECONDS} seconds, you can set a longer timeout with the timeoutInSeconds option."
+  exit 1
+}
 
 echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 
-EXIT_CODES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].status.containerStatuses[].state.terminated.exitCode') 
-exit $(expr $(wc -l <<< "$EXIT_CODES") - $(grep 0 <<< "$EXIT_CODES" | wc -l))
+CONTAINER_STATUSES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | '[.items[].status.containerStatuses // [], .items[].status.initContainerStatuses // []]| flatten(1)')
+EXIT_CODES=$(jq -cr '{name: .name, exitCode: [.state.terminated.exitCode, .lastState.terminated.exitCode] | max}' <<< "${CONTAINER_STATUSES}")a
+PP_EXIT_CODES=$(jq -r . <<< "${EXIT_CODES}")
+echo -e "Container exit statuses\n${PP_EXIT_CODES}"
+
+# Exit with the max exitCode
+jq -e '. | max_by(.exitCode)' <<< "${EXIT_CODES}
