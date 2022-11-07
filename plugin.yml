@@ -18,6 +18,8 @@ configuration:
       type: boolean
     mount-source:
       type: boolean
+    timeoutInSeconds:
+      type: number
   required:
     - pod-spec
   additionalProperties: false

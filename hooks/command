@@ -33,7 +33,7 @@ metadata:
     pipeline: ${BUILDKITE_PIPELINE_SLUG}
     step: ${BUILDKITE_STEP_ID}
 spec:
-  backoffLimit: 6
+  backoffLimit: 0
   completions: 1
   parallelism: 1
   ttlSecondsAfterFinished: 600
@@ -43,18 +43,45 @@ spec:
       labels:
         service: buildkite
         pipeline: ${BUILDKITE_PIPELINE_SLUG}
-
         step: ${BUILDKITE_STEP_ID}
     spec: ${POD_SPEC}
 EOF
 
 echo -e "Using annotations\n${PP_ANNOTATIONS}"
 
+TIMEOUT_IN_SECONDS=$(jq -cr '.timeoutInSeconds // 300' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+INIT_CONTAINER_COUNT=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].spec.initContainers | length')
+CONTAINER_COUNT=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq '.items[].spec.containers | length')
+echo -e "Found ${INIT_CONTAINER_COUNT} init containers, ${CONTAINER_COUNT} containers"
+
 echo "Waiting for job to be complete..."
-kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=60s || true
+TIMEOUT=`expr $(date +%s) + ${TIMEOUT_IN_SECONDS}`
+while [ "$(date +%s)" -lt "${TIMEOUT}" ]; do
+  if kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} --timeout=0 2>/dev/null; then
+    JOB_RESULT=0
+    break
+  fi
+
+  if kubectl wait --for=condition=failed job -l step=${BUILDKITE_STEP_ID} --timeout=0 2>/dev/null; then
+    JOB_RESULT=1
+    break
+  fi
+
+  sleep 1
+  printf "."
+done
+if [ "$(date +%s)" -ge "${TIMEOUT}" ]; then
+  echo "Error: Timeout for job expired after ${TIMEOUT_IN_SECONDS} seconds, you can set a longer timeout with the timeoutInSeconds option."
+  exit 1
+fi
 
 echo "Job logs..."
 kubectl logs -l step=${BUILDKITE_STEP_ID} --tail=-1 --follow=true
 
-# Set exit code from container status
-kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq -e ".items[].status.containerStatuses[0].state.terminated.exitCode"
+CONTAINER_STATUSES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -o json | jq -cr '[.items[].status.containerStatuses // [], .items[].status.initContainerStatuses // []] | flatten(1)')
+EXIT_CODES=$(jq -cr 'map({"name": .name, "exitCode": [.state.terminated.exitCode, .lastState.terminated.exitCode] | max})' <<< "${CONTAINER_STATUSES}")
+PP_EXIT_CODES=$(jq -r . <<< "${EXIT_CODES}")
+echo -e "Container exit statuses\n${PP_EXIT_CODES}"
+
+# Exit with the max exitCode
+jq -e 'max_by(.exitCode) | .exitCode == 0' <<< "${EXIT_CODES}"
