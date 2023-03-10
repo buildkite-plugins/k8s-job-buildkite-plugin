@@ -2,9 +2,11 @@
 
 Run a [Command Step](https://buildkite.com/docs/pipelines/command-step) as a Kubernetes [Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/) using a [Pod Spec](https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#PodSpec).
 
-## RBAC
+## Requirements
 
-You will need to ensure your agent deployment has sufficient privileges to create resources on your kubernetes cluster. An example RBAC policy:
+The plugin assumes you have kubectl and kustomize available on your agent, and these have appropriate credentials with sufficient privileges to create resources on your kubernetes cluster.
+
+For example, you can run you agent with a service account with an appropriate RBAC policy like:
 
 ```yaml
 kind: ServiceAccount
@@ -37,9 +39,9 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ```
 
-## Configuration
+## Usage
 
-`pod-spec` this takes a [kubernetes pod spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#podspec-v1-core) that will run in a kubernetes job. It is often easier to format this with a yaml reference like below:
+You can specify a `pod-spec` within the plugin configuration. This takes a [kubernetes pod spec](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#podspec-v1-core) that will run in a kubernetes job. It is often easier to format this with a yaml reference like below:
 
 ```yaml
 success-spec: &success-spec
