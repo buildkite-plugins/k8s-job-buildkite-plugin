@@ -4,9 +4,11 @@ Run a [Command Step](https://buildkite.com/docs/pipelines/command-step) as a Kub
 
 ## Requirements
 
-The plugin assumes you have kubectl and kustomize available on your agent, and these have appropriate credentials with sufficient privileges to create resources on your kubernetes cluster.
+The plugin assumes you have `kubectl` and `kustomize` available on your agent, and these have appropriate credentials with sufficient privileges to create resources on your kubernetes cluster.
 
-For example, you can run you agent with a service account with an appropriate RBAC policy like:
+There are `buildkite/agent:alpine-k8s` images [available on Docker Hub](https://hub.docker.com/r/buildkite/agent) which are the standard `buildkite/agent:alpine` image with the appropriate tools included as well.
+
+You can run such an agent in a kubernetes pod with a service account and an appropriate RBAC policy like:
 
 ```yaml
 kind: ServiceAccount
