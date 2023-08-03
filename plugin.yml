@@ -12,6 +12,9 @@ configuration:
       properties:
         annotations:
           type: object
+        namespace:
+          type: string
+          default: default
     pod-spec:
       type: string
     cleanup:
