@@ -3,8 +3,9 @@ set -uo pipefail
 cd "$(dirname "$0")/.."
 
 CLEANUP=$(jq -cr '.["cleanup"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+NAMESPACE=$(jq -cr '.["metadata"]["namespace"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 
 if [ "${CLEANUP}" != "false" ]; then
   echo "Deleting job..."
-  kubectl delete -l step=${BUILDKITE_STEP_ID} job
+  kubectl delete -l step=${BUILDKITE_STEP_ID} job -n ${NAMESPACE}
 fi
