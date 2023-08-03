@@ -40,6 +40,7 @@ roleRef:
   name: agent-k8s-job
   apiGroup: rbac.authorization.k8s.io
 ```
+NOTE: If you want k8s job to be deployed to specific namespace then above resources needed to be create in that k8s namespace.
 
 ## Usage
 
@@ -63,6 +64,8 @@ steps:
 `cleanup` will clean up the job and pod resources after the step runs. If set to false they will remain for 10 minutes to debug. Defaults to true.
 
 `metadata.annotations` will add metadata (annotations) to the kubernetes job. Defaults to an empty object.
+
+`metadata.namespace` will add namespace to the kubernetes job. Defaults to default namespace.
 
 `mount-source` will mount the source code to `/buildkite/src` if set to true. This can be used for build steps that build images from source. Defaults to false.
 
