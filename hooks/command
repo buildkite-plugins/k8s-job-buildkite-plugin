@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 ANNOTATIONS=$(jq -cr '.["metadata"]["annotations"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 PP_ANNOTATIONS=$(jq -r . <<< "${ANNOTATIONS}")
 NAMESPACE=$(jq -cr '.["metadata"]["namespace"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
+if [ "${NAMESPACE}" = "null" ]; then
+    NAMESPACE="default"
+fi
 POD_SPEC=$(jq -cr '.["pod-spec"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
-
 
 MOUNT_SOURCE=$(jq -cr '.["mount-source"]' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
 if [ "${MOUNT_SOURCE}" == "true" ]; then
@@ -51,20 +53,18 @@ EOF
 echo -e "Using annotations\n${PP_ANNOTATIONS}"
 
 TIMEOUT_IN_SECONDS=$(jq -cr '.timeoutInSeconds // 300' <<< "${BUILDKITE_PLUGIN_CONFIGURATION}")
-INIT_CONTAINER_COUNT=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -n ${NAMESPACE} -o json | jq '.items[].spec.initContainers | length')
-CONTAINER_COUNT=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -n ${NAMESPACE} -o json | jq '.items[].spec.containers | length')
+INIT_CONTAINER_COUNT=$(kubectl get -l step="${BUILDKITE_STEP_ID}" pod -n "${NAMESPACE}" -o json | jq '.items[].spec.initContainers | length')
+CONTAINER_COUNT=$(kubectl get -l step="${BUILDKITE_STEP_ID}" pod -n "${NAMESPACE}" -o json | jq '.items[].spec.containers | length')
 echo -e "Found ${INIT_CONTAINER_COUNT} init containers, ${CONTAINER_COUNT} containers"
 
 echo "Waiting for job to be complete..."
-TIMEOUT=`expr $(date +%s) + ${TIMEOUT_IN_SECONDS}`
+TIMEOUT=$(( $(date +%s) + TIMEOUT_IN_SECONDS ))
 while [ "$(date +%s)" -lt "${TIMEOUT}" ]; do
-  if kubectl wait --for=condition=complete job -l step=${BUILDKITE_STEP_ID} -n ${NAMESPACE} --timeout=0 2>/dev/null; then
-    JOB_RESULT=0
+  if kubectl wait --for=condition=complete job -l step="${BUILDKITE_STEP_ID}" -n "${NAMESPACE}" --timeout=0 2>/dev/null; then
     break
   fi
 
-  if kubectl wait --for=condition=failed job -l step=${BUILDKITE_STEP_ID} -n ${NAMESPACE} --timeout=0 2>/dev/null; then
-    JOB_RESULT=1
+  if kubectl wait --for=condition=failed job -l step="${BUILDKITE_STEP_ID}" -n "${NAMESPACE}" --timeout=0 2>/dev/null; then
     break
   fi
 
@@ -77,9 +77,9 @@ if [ "$(date +%s)" -ge "${TIMEOUT}" ]; then
 fi
 
 echo "Job logs..."
-kubectl logs -l step=${BUILDKITE_STEP_ID} -n ${NAMESPACE} --tail=-1 --follow=true
+kubectl logs -l step="${BUILDKITE_STEP_ID}" -n "${NAMESPACE}" --tail=-1 --follow=true
 
-CONTAINER_STATUSES=$(kubectl get -l step=${BUILDKITE_STEP_ID} pod -n ${NAMESPACE} -o json | jq -cr '[.items[].status.containerStatuses // [], .items[].status.initContainerStatuses // []] | flatten(1)')
+CONTAINER_STATUSES=$(kubectl get -l step="${BUILDKITE_STEP_ID}" pod -n "${NAMESPACE}" -o json | jq -cr '[.items[].status.containerStatuses // [], .items[].status.initContainerStatuses // []] | flatten(1)')
 EXIT_CODES=$(jq -cr 'map({"name": .name, "exitCode": [.state.terminated.exitCode, .lastState.terminated.exitCode] | max})' <<< "${CONTAINER_STATUSES}")
 PP_EXIT_CODES=$(jq -r . <<< "${EXIT_CODES}")
 echo -e "Container exit statuses\n${PP_EXIT_CODES}"
