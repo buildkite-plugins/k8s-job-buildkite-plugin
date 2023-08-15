@@ -15,7 +15,9 @@ kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: agent-k8s-job
----
+```
+
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -27,7 +29,9 @@ rules:
   - apiGroups: ["batch"]
     resources: ["jobs"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
----
+```
+
+```yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -61,12 +65,39 @@ steps:
           pod-spec: *success-spec
 ```
 
+## Examples
+
+Here is a simple command step that you can run as job in k8s:
+
+```yaml
+steps:
+  - label: "Consulting my :crystal_ball: thats inside my :k8s: pod"
+    plugins:
+      - k8s-job#v1.0.0:
+          pod-spec:
+            containers:
+              - name: ${BUILDKITE_PIPELINE_SLUG}-${BUILDKITE_BUILD_NUMBER}-${BUILDKITE_STEP_ID}-success
+                image: busybox:1.28
+                command: ['sh', '-c', 'echo "Hello, Kubernetes!" && sleep 30']
+```
+
+## Options
+The K8s Job plugin supports a number of different configuration options.
+
+### `pod-spec` (required, object)
+`pod-spec` will be used to specify the k8s job definition
+
+### `cleanup` (optional, boolean)
 `cleanup` will clean up the job and pod resources after the step runs. If set to false they will remain for 10 minutes to debug. Defaults to true.
+
+### `metadata` (optional, object)
+Metadata object will be used to add annotations and namespace for the kubernetes job.
 
 `metadata.annotations` will add metadata (annotations) to the kubernetes job. Defaults to an empty object.
 
 `metadata.namespace` will add namespace to the kubernetes job. Defaults to default namespace.
 
+### `mount-source` (optional, boolean)
 `mount-source` will mount the source code to `/buildkite/src` if set to true. This can be used for build steps that build images from source. Defaults to false.
 
 To use this option your agent must include in the nodeName it is running on in its environment variables as `BUILDKITE_AGENT_NODE_NAME`. It must also include a hostPath volumes and volumeMount for the agent.
@@ -93,4 +124,5 @@ volumeMounts:
     mountPath: "/buildkite/builds"
 ```
 
+### `timeoutInSeconds` (optional, number)
 `timeoutInSeconds` will set how long the job should wait for all of the init containers and containers in the pod spec to finish before reporting an error. Defaults to 300.
