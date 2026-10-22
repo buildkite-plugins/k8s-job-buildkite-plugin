@@ -1,7 +1,7 @@
 steps:
   - label: ":sparkles: Lint"
     plugins:
-      - plugin-linter#v4.0.0:
+      - plugin-linter#v4.1.0:
           id: k8s-job
 
   - label: ":shell: Shellcheck"
